@@ -23,7 +23,27 @@ def guess_number():
 
 
 
+def birthday_check(dct):
+    print('Welcome to the birthday dictionary. We know the birthdays of:')
+    for name in dct:
+        print(name)
+
+    print("Who's birthday do you want to look up?")
+    name = input()
+    if name in dct:
+        print('{}\'s birthday is {}.'.format(name, dct[name]))
+    else:
+        print('Sadly, we don\'t have {}\'s birthday.'.format(name))
 
 
 if __name__ == '__main__':
     guess_number()
+    birthdays = {
+        'Albert Einstein': '03/14/1879',
+        'Benjamin Franklin': '01/17/1706',
+        'Ada Lovelace': '12/10/1815',
+        'Donald Trump': '06/14/1946',
+        'Rowan Atkinson': '01/6/1955'}
+
+    birthday_check(birthdays)
+
