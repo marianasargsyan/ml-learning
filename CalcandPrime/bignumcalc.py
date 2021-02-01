@@ -15,18 +15,16 @@ def findSum(str1, str2):
 
 
     for i in range(len(str1)):
-
         if i < len(str2):
             # result.append()
             lst1.append(int(rev_str1[i]))
             lst2.append(int(rev_str2[i]))
     for i in range(len(lst1)):
         if lst1[i] + lst2[i] >= 10:
-            print(lst1[i] + lst2[i] - 10)
             result.append((lst1[i] + lst2[i]) - 10)
+            result[i-2] += 1
         else:
             result.append(lst1[i] + lst2[i])
-            result[i] += 1
     tmp_lst = list(range(0, diff))
 
     rev_result = result[::-1]
@@ -39,8 +37,28 @@ def findSum(str1, str2):
     return str_result
 
 
-if __name__ == '__main__':
-    tst2 = "2226665"
-    tst1 = "11199"
+def Sum(str1, str2):
+    diff = abs(len(str1)-len(str2))
+    if len(str1) < len(str2):
+        str1 = '0'*diff + str1
+    else:
+        str2 = '0'*diff + str2
 
-    print(findSum(tst1, tst2))
+    acc = 0
+    result = ''
+
+    for i in reversed(range(len(str1))):
+        tmp = int(str1[i]) + int(str2[i]) + acc
+        acc = tmp // 10
+        result = str(tmp % 10) + result
+    return result
+
+
+
+
+
+if __name__ == '__main__':
+    tst2 = "2815345645623"
+    tst1 = "16457657569"
+
+    print(Sum(tst1, tst2), int(tst1)+int(tst2))
