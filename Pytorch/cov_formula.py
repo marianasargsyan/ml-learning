@@ -3,23 +3,29 @@ import matplotlib.pyplot as plt
 import torch
 
 X = torch.linspace(1, 50, 50).reshape(-1, 1)
-# print(X)
-
 
 e = torch.randint(-8, 9, (50, 1), dtype=torch.float)
-# print(e)
-
 y = 2 * X + 1 + e
-# print(y.shape)
 
 X = X.numpy()
 y = y.numpy()
 x_mean = np.mean(X)
 y_mean = np.mean(y)
 
-# plt.scatter(X, y)
-# plt.show()
 
+var_x = sum((X - x_mean)**2)/len(X)
+var_y = sum((y - y_mean)**2)/len(y)
+
+stdev_x = np.sqrt(var_x)
+stdev_y = np.sqrt(var_y)
+
+r = sum((X - x_mean)*(y - y_mean)/(stdev_x*stdev_y)) / len(X)
+
+a = r * stdev_y / stdev_x
+
+b = y_mean - (x_mean * a)
+
+new_y = a * X + b
 
 def cov(x, y):
     x_mean = np.mean(x)
@@ -31,17 +37,16 @@ def cov(x, y):
     return data / (len(data))
 
 
-# print(cov1(X, y))
+a1 = cov(X, y) / cov(X, X)
+b1 = y_mean - (x_mean * a)
+y_cov = a1 * X + b1
 
-a = cov(X, y) / cov(X, X)
+if __name__ == '__main__':
+    # cov_xy = cov(X, y)
+    # print(new_y)
 
-b = y_mean - (x_mean * a)
+    plt.scatter(X, y)
+    plt.plot(new_y, 'r')
+    plt.show()
 
-y_cov = a*X + b
-
-cov_xy = cov(X, y)
-print(y_cov)
-
-plt.scatter(X, y)
-plt.plot(y_cov, 'r')
-plt.show()
+    print(np.c_[new_y, y_cov])

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from torch.utils.data import TensorDataset, DataLoader
 
-df = pd.read_csv('iris.csv')
+df = pd.read_csv('Data/iris.csv')
 
 print(df.head())
 

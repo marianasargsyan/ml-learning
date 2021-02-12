@@ -14,8 +14,10 @@ e = torch.randint(-8, 9, (50, 1), dtype=torch.float)
 y = 2 * X + 1 + e
 # print(y.shape)
 
-# plt.scatter(X.numpy(),y.numpy())
-# plt.show()
+plt.scatter(X.numpy(),y.numpy())
+plt.show()
+
+
 
 torch.manual_seed(59)
 
@@ -89,16 +91,17 @@ for i in range(epochs):
     optimizer.step()
 
 
-plt.plot(range(epochs),losses)
-plt.ylabel('MSE LOSS')
-plt.xlabel('Epoch')
-plt.show()
+# plt.plot(range(epochs),losses)
+# plt.ylabel('MSE LOSS')
+# plt.xlabel('Epoch')
+# plt.show()
 
 x = np.linspace(0.0,50.0,50)
 current_weight = model.linear.weight.item()
 current_bias = model.linear.bias.item()
 prediced_y = current_weight*x + current_bias
 
-plt.scatter(X.numpy(), y.numpy())
-plt.plot(x, prediced_y, 'r')
-plt.show()
+# plt.scatter(X.numpy(), y.numpy())
+# plt.plot(x, prediced_y, 'r')
+# plt.show()
+

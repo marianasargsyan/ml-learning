@@ -26,7 +26,7 @@ class Model(nn.Module):
 torch.manual_seed(32)
 model = Model()
 
-df = pd.read_csv('iris.csv')
+df = pd.read_csv('Data/iris.csv')
 # print(df.tail())
 
 features = df.drop('target', axis=1).values
