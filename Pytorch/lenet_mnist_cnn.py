@@ -6,7 +6,6 @@ import time
 import argparse
 import torchvision
 import matplotlib.pyplot as plt
-import shutil
 
 from torchvision.datasets import MNIST
 from sklearn.metrics import accuracy_score
@@ -14,7 +13,6 @@ from torch.utils.data.dataloader import DataLoader
 
 
 class LeNet5(nn.Module):
-
     def __init__(self):
         super(LeNet5, self).__init__()
         self.input_size = 28
@@ -28,28 +26,35 @@ class LeNet5(nn.Module):
         self.output = nn.Linear(84, 10)
 
     def forward(self, X):
-        y = self.pool1(torch.tanh(self.conv1(X)))
-        y = self.pool2(torch.tanh(self.conv2(y)))
+        y = self.pool1(torch.relu(self.conv1(X)))
+        y = self.pool2(torch.relu(self.conv2(y)))
         y = y.view(-1, self.flatten_size)
         y = torch.tanh(self.fc1(y))
         y = torch.tanh(self.fc2(y))
         return torch.softmax(self.output(y), dim=1)
 
 
-def read(my_model, optimizer, scheduler, initial_epoch, best_acc, model_path):
-    if model_path != '':
-        model.load_state_dict(torch.load(model_path))
-    else:
-        return my_model, optimizer, scheduler, initial_epoch, best_acc
+def read(model, optim, lr_scheduler, initial_epoch, best_acc, metrics, model_path):
+    if model_path == '':
+        return model, optim, lr_scheduler, initial_epoch, best_acc, metrics
+    _dict = torch.load(model_path)
+    model.load_state_dict(_dict['model'])
+    optim.load_state_dict(_dict['optimizer'])
+    lr_scheduler.load_state_dict(_dict['scheduler'])
+    initial_epoch = _dict['epoch']
+    best_acc = _dict['accuracy']
+    metrics = _dict['metrics']
+    return model, optim, lr_scheduler, initial_epoch, best_acc, metrics
 
 
-def write(my_model, optimizer, scheduler, epoch, acc, model_path):
+def write(model, optim, lr_scheduler, epoch, acc, metrics, model_path):
     checkpoints = {
         'epoch': epoch,
-        'model_state': my_model.state_dict(),
-        'optimizer_state': optimizer.state_dict(),
-        'scheduler_state': scheduler.state_dict(),
-        'accuracy': acc
+        'model': model.state_dict(),
+        'optimizer': optim.state_dict(),
+        'scheduler': lr_scheduler.state_dict(),
+        'accuracy': acc,
+        'metrics': metrics
     }
     torch.save(checkpoints, model_path)
 
@@ -86,25 +91,22 @@ def plot_results(metrics):
         ax[j].plot(np.arange(len(metrics)), np.array(metrics)[:, j], marker='.', linewidth=1, markersize=6)
         ax[j].set_title(s[j])
     fig.tight_layout()
-    ax[1].legend()
     fig.savefig('results.png', dpi=200)
 
 
 def train(model, train_loader, test_loader, epochs, device):
-    epochs = 0
+    initial_epoch = 0
     best_acc = 0
-    criterion = nn.CrossEntropyLoss()
-    optim = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, 10)
-    model, optim, lr_scheduler, epochs, best_acc = read(model, optim, lr_scheduler, epochs, best_acc, args.model)
     metrics = []
-
-    for e in range(epochs):
+    criterion = nn.CrossEntropyLoss()
+    optim = torch.optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, 10)
+    model, optim, lr_scheduler, initial_epoch, best_acc, metrics = read(model, optim, lr_scheduler, initial_epoch, best_acc, metrics, args.model)
+    for e in range(initial_epoch, epochs):
         progress_bar = tqdm.tqdm(enumerate(train_loader), total=len(train_loader))
         acc = 0
         total_loss = 0.0
         model.train()
-
         for i, (data, target) in progress_bar:
             data = data.to(device)
             target = target.to(device)
@@ -119,12 +121,13 @@ def train(model, train_loader, test_loader, epochs, device):
             if i % 100 == 0:
                 progress_bar.set_description(
                     'epoch: ' + str(e + 1) + ' loss: ' + str(total_loss / (i + 1)) + ' acc: ' + str(acc / (i + 1)))
-        if acc > best_acc:
-            best_acc = acc
-        write(my_model=model, optimizer=optim, scheduler=lr_scheduler, acc=best_acc, epoch=epochs, model_path=args.model)
         lr_scheduler.step()
         test_acc, test_loss = test(model, test_loader, criterion, device)
         metrics.append([total_loss / len(train_loader), acc / len(train_loader), test_loss, test_acc])
+        if test_acc > best_acc:
+            best_acc = test_acc
+            write(model, optim, lr_scheduler, e + 1, best_acc, metrics, model_path='best.pt')
+        write(model, optim, lr_scheduler, e + 1, test_acc, metrics, model_path='last.pt')
         plot_results(metrics)
 
 
@@ -132,7 +135,7 @@ def pars_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--epochs', type=int, default=20)
-    parser.add_argument('--model', type=str, default='Lenet_model.pt')
+    parser.add_argument('--model', type=str, default='')
     return parser.parse_args()
 
 
