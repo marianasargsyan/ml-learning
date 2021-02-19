@@ -38,7 +38,7 @@ class LeNet5(nn.Module):
 
 def read(my_model, optimizer, scheduler, initial_epoch, best_acc, model_path):
     if model_path != '':
-        model.load_state_dict(torch.load(model_path))
+        my_model.load_state_dict(torch.load(model_path))
     else:
         return my_model, optimizer, scheduler, initial_epoch, best_acc
 
@@ -91,12 +91,13 @@ def plot_results(metrics):
 
 
 def train(model, train_loader, test_loader, epochs, device):
-    epochs = 0
     best_acc = 0
     criterion = nn.CrossEntropyLoss()
     optim = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, 10)
+    print(args.model)
     model, optim, lr_scheduler, epochs, best_acc = read(model, optim, lr_scheduler, epochs, best_acc, args.model)
+    print(model, optim, lr_scheduler, epochs, best_acc)
     metrics = []
 
     for e in range(epochs):
@@ -121,7 +122,7 @@ def train(model, train_loader, test_loader, epochs, device):
                     'epoch: ' + str(e + 1) + ' loss: ' + str(total_loss / (i + 1)) + ' acc: ' + str(acc / (i + 1)))
         if acc > best_acc:
             best_acc = acc
-        write(my_model=model, optimizer=optim, scheduler=lr_scheduler, acc=best_acc, epoch=epochs, model_path=args.model)
+        write(my_model=model, optimizer=optim, scheduler=lr_scheduler, acc=best_acc, epoch=epochs, model_path='Lenet.pt')
         lr_scheduler.step()
         test_acc, test_loss = test(model, test_loader, criterion, device)
         metrics.append([total_loss / len(train_loader), acc / len(train_loader), test_loss, test_acc])
@@ -132,7 +133,7 @@ def pars_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--epochs', type=int, default=20)
-    parser.add_argument('--model', type=str, default='Lenet_model.pt')
+    parser.add_argument('--model', type=str)
     return parser.parse_args()
 
 
