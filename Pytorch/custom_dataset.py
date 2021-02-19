@@ -17,9 +17,9 @@ def prepare_dataset(directory1, directory2, parent_dir):
     file_list = os.listdir(parent_dir)
     for image in file_list:
         if directory1.lower() in image.lower():
-            shutil.move(image, path1)
+            shutil.move(os.path.join(parent_dir, image), path1)
         elif directory2.lower() in image.lower():
-            shutil.move(image, path2)
+            shutil.move(os.path.join(parent_dir, image), path2)
     print(f'Files moved to corresponding folders.')
 
 
@@ -55,4 +55,4 @@ class CustomDataset(Dataset):
 
 
 if __name__ == '__main__':
-    prepare_dataset('Cat', 'Dog', 'Data/dataset')
+    prepare_dataset('Cat', 'Dog', 'train')
